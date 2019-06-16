@@ -239,7 +239,7 @@ describe('Chartist plugin legend', function() {
 
         });
 
-        it('should allow a custom class name', function(done) {
+        it('should allow an additional root class name', function(done) {
             chart = generateChart('Line', chartDataLine, { className: 'bananas' });
 
             // Set a delay on the test to ensure it doesn't overlap with the plugin native 'created' handler
@@ -254,24 +254,50 @@ describe('Chartist plugin legend', function() {
             });
         });
 
-        it('should allow multiple custom class names', function (done) {
-           var classNames = ['multiclass-0', 'multiclass-1', 'multiclass-hidden'];
-           chart = generateChart('Line', chartDataLine, { classNames: classNames });
+        it('should allow replacing legend class names', function (done) {
+            var classNames = {
+                legend: 'custom-legend'
+            };
+            chart = generateChart('Line', chartDataLine, { classNames: classNames });
 
-           // Set a delay on the test to ensure it doesn't overlap with the plugin native 'created' handler
-           chart.on('created', function () {
-              setTimeout(function () {
-                 var legend = chart.container.querySelector('ul.ct-legend');
+            // Set a delay on the test to ensure it doesn't overlap with the plugin native 'created' handler
+            chart.on('created', function () {
+                setTimeout(function () {
+                    var matches = chart.container.querySelectorAll('ul.custom-legend');
+                    expect(matches.length).to.equal(1);
+                    destroyChart();
+                    done();
 
-                 expect(chart.data.series.length).to.equal(3);
-                 expect(legend.children[0].classList.contains(classNames[0])).to.be.true;
-                 expect(legend.children[1].classList.contains(classNames[1])).to.be.true;
-                 expect(legend.children[2].classList.contains(classNames[2])).to.be.true;
-                 destroyChart();
-                 done();
+                }, 10)
+            });
+        });
 
-              }, 10)
-           });
+        it('should allow replacing legend list items class names', function(done) {
+            var legendNames = [
+                {name: 'Sheep', className: 'sheep', series: [0]},
+                {name: 'are', className: 'are', series: [1]},
+                {name: 'animal', className: 'animal', series: [2]}
+            ];
+            chart = generateChart('Line', chartDataLine, { legendNames: legendNames });
+
+            // Set a delay on the test to ensure it doesn't overlap with the plugin native 'created' handler
+            chart.on('created', function () {
+                setTimeout(function () {
+                    var legendKey = 0;
+                    var parent = chart.container.querySelector('ul.ct-legend');
+
+                    expect(parent.childNodes.length).to.equal(3);
+                    [].forEach.call(parent.childNodes, function (item)
+                    {
+                        expect(item.classList.contains(legendNames[legendKey].className)).to.be.true;
+                        legendKey += 1;
+                    });
+
+                    destroyChart();
+                    done();
+
+                }, 10)
+            });
         });
 
         describe('allow custom positioning', function () {

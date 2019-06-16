@@ -21,7 +21,11 @@
 
     var defaultOptions = {
         className: '',
-        classNames: false,
+        classNames: {
+            inactive: 'inactive',
+            legend: 'ct-legend',
+            legendInside: 'ct-legend-inside',
+        },
         removeAll: false,
         legendNames: false,
         clickable: true,
@@ -56,7 +60,7 @@
         return function legend(chart) {
 
             function removeLegendElement() {
-                var legendElement = chart.container.querySelector('.ct-legend');
+                var legendElement = chart.container.querySelector('.' + options.classNames.legend);
                 if (legendElement) {
                     legendElement.parentNode.removeChild(legendElement);
                 }
@@ -78,9 +82,9 @@
 
             function createLegendElement() {
                 var legendElement = document.createElement('ul');
-                legendElement.className = 'ct-legend';
+                legendElement.className = options.classNames.legend;
                 if (chart instanceof Chartist.Pie) {
-                    legendElement.classList.add('ct-legend-inside');
+                    legendElement.classList.add(options.classNames.legendInside);
                 }
                 if (typeof options.className === 'string' && options.className.length > 0) {
                     legendElement.classList.add(options.className);
@@ -110,13 +114,9 @@
                 return seriesMetadata;
             }
 
-            function createNameElement(i, legendText, classNamesViable) {
+            function createNameElement(i, legendText, legendClassName) {
                 var li = document.createElement('li');
-                li.classList.add('ct-series-' + i);
-                // Append specific class to a legend element, if viable classes are given
-                if (classNamesViable) {
-                    li.classList.add(options.classNames[i]);
-                }
+                li.className = legendClassName;
                 li.setAttribute('data-legend', i);
                 li.textContent = legendText;
                 return li;
@@ -152,10 +152,10 @@
 
                     if (!legend.active) {
                         legend.active = true;
-                        li.classList.remove('inactive');
+                        li.classList.remove(options.classNames.inactive);
                     } else {
                         legend.active = false;
-                        li.classList.add('inactive');
+                        li.classList.add(options.classNames.inactive);
 
                         var activeCount = legends.filter(function(legend) { return legend.active; }).length;
                         if (!options.removeAll && activeCount == 0) {
@@ -163,7 +163,7 @@
                             // reenable all of them:
                             for (var i = 0; i < legends.length; i++) {
                                 legends[i].active = true;
-                                legendElement.childNodes[i].classList.remove('inactive');
+                                legendElement.childNodes[i].classList.remove(options.classNames.inactive);
                             }
                         }
                     }
@@ -199,15 +199,13 @@
             var seriesMetadata = initSeriesMetadata(useLabels);
             var legends = [];
 
-            // Check if given class names are viable to append to legends
-            var classNamesViable = Array.isArray(options.classNames) && options.classNames.length === legendNames.length;
-
             // Loop through all legends to set each name in a list item.
             legendNames.forEach(function (legend, i) {
                 var legendText = legend.name || legend;
                 var legendSeries = legend.series || [i];
+                var legendClassName = (options.legendNames && legend.className) || 'ct-series-' + i;
 
-                var li = createNameElement(i, legendText, classNamesViable);
+                var li = createNameElement(i, legendText, legendClassName);
                 legendElement.appendChild(li);
 
                 legendSeries.forEach(function(seriesIndex) {
